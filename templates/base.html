@@ -1,0 +1,79 @@
+<!-- purpose: base template for the webpages
+module: Web Development and Databases
+author: Yazeed Abu-Hummos
+UWE ID: 21014295
+last edit time and date: 05:52 30/04/2022 -->
+
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% block head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{url_for('static', filename='design.css' )}}" type="text/css">
+    {% block title %}
+    <title>
+        Horizon Hotels
+    </title>
+    {% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        {% block script %}
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+        {% endblock %}
+    </script>
+    {% endblock %}
+</head>
+
+<body>
+    {% block headerAndNav %}
+    <header>
+        <form style="float: right; font-size: medium; margin-right: 1%;" action="/home" method="POST">
+            <input type="hidden" value="currency" name="formType">
+            <select name="currency" id="currency" onchange="this.form.submit()">
+                {% for currency in currencies %}
+                <option value="{{currency}}" {% if currency==currentCurrency %} selected="selected" {% endif %}>
+                    {{currency}}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <h1 style="margin-top: 30px;">Horizon Hotels</h1>
+        {% if loggedin %}
+        <h5 style="text-align: right; font-size: medium; margin-right: 1%;"><a href="{{url_for('logout',)}}">Log out</a>
+        </h5>
+        {% else %}
+        <h5 style="text-align: right; font-size: medium; margin-right: 1%;"><a href="{{url_for('register',)}}">Log
+                in</a></h5>
+        {% endif %}
+    </header>
+    <div class="navigation">
+        <div><a href="{{url_for('index',)}}">Home</a></div>
+        {% if loggedin %}
+        <div><a href="{{url_for('account',)}}">Account</a></div>
+        {% else %}
+        <div><a href="{{url_for('register',)}}">Register</a></div>
+        {% endif %}
+    </div>
+    <br>
+    {% endblock %}
+    <h2 style="text-align: center; color:green;">{{message | safe}}</h2>
+    <h2 style="text-align: center; color:red;">{{error | safe}}</h2>
+    {% block content %}
+    {%endblock%}
+    <footer>
+        {% block footer %}
+        <div style="margin: 1%;">
+            <a href="{{url_for('policies')}}">Policies</a>
+            <p>Thanks for choosing us</p>
+        </div>
+        {% endblock %}
+    </footer>
+</body>
+
+</html>

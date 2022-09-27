@@ -1,0 +1,129 @@
+<!-- purpose: webpage for booking payment
+module: Web Development and Databases
+author: Yazeed Abu-Hummos
+UWE ID: 21014295
+last edit time and date: 05:51 30/04/2022 -->
+
+
+{% extends "base.html" %}
+{{ super()}}
+{%block content%}
+<style>
+    .info,
+    .midimage,
+    .payment {
+        width: 100%;
+    }
+
+    form {
+        display: block;
+    }
+
+    @media only screen and (min-width: 825px) {
+        form {
+            text-align: left;
+            display: flex;
+        }
+
+        form div {
+            flex-wrap: wrap;
+            padding: 1%;
+        }
+
+        .info {
+            width: 20%;
+        }
+
+        .midimage {
+            width: 30%;
+        }
+
+        .payment {
+            width: 50%;
+        }
+    }
+</style>
+
+<body onload="initialdate();">
+    <form action="/account" method="POST">
+        <div class="info">
+            <h1>Booking info</h1>
+            <input type="hidden" name="formType" value="bookingForm" readonly>
+
+            <label>Name: {{user[0]}} {{user[1]}}</label>
+            <input type="hidden" name="name" id="name" value="{{user[0]}} {{user[1]}}" readonly><br><br>
+
+            <label for="hotel">Hotel: {{hotel}}</label>
+            <input type="hidden" name="hotel" id="hotel" value="{{hotel}}" readonly><br><br>
+
+            <label for="type">Type: {{type}} </label>
+            <input type="hidden" name="type" id="type" value="{{type}}"><br><br>
+
+            <label for="today">Date of booking: {{today}}</label>
+            <input type="hidden" id="today" name="today" value="{{today}}" readonly><br><br>
+
+            <label for="from">From: {{frm}}</label>
+            <input type="hidden" id="from" name="from" value="{{frm}}" readonly><br><br>
+
+            <label for="to">To: {{to}}</label>
+            <input type="hidden" id="to" name="to" value="{{to}}" readonly><br><br>
+
+            <label>Number of nights: {{period}}</label>
+            <input type="hidden" name="period" id="period" value="{{period}}" readonly><br><br>
+
+            <label for="people">Number of people: {{people}}</label>
+            <input type="hidden" id="people" name="people" value="{{people}}" readonly>
+        </div>
+
+        <div class="midimage">
+            <img src="/static/rooms pics/{{hotel}}.jpg" alt="{{hotel}} hotel pic" height="100%" width="100%">
+        </div>
+
+        <div class="payment">
+            <h1>Price info</h1>
+            <label for="price">You are booking {{discountDays}} days in advance, so you will get a {{discount*100}}%
+                discount <br>
+                Price before discount: {{price*currencies[currentCurrency]}} {{currentCurrency}} <br>
+                Price after discount: {{price*(1-discount)*currencies[currentCurrency]}} {{currentCurrency}}</label><br>
+
+            <input type="hidden" id="price" name="price" value="{{price*(1-discount)*currencies[currentCurrency]}}"
+                readonly><br><br>
+
+
+            <h1>Payment info</h1>
+            <label for="cardname">Name on card: </label>
+            <input type="text" name="cardname" id="cardname" pattern=".{4,}" maxlength="64"
+                oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                required><br><br>
+
+            <label for="cardnum">Number on card: </label>
+            <input type="text" name="cardnum" id="cardnum" pattern=".{13,}" maxlength="19"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                required><br><br>
+
+            <label for="cardexp">Expiry date: </label>
+            <input type="month" name="cardexp" id="cardexp" required><br><br>
+
+            <label for="cardcvv">CVV: </label>
+            <input type="text" name="cardcvv" id="cardcvv" pattern=".{3,}" maxlength="3"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                required><br><br>
+            <input type="submit" value="Check out">
+        </div>
+    </form>
+    <script>
+        function initialdate() {
+            var min = new Date();
+            var year = min.getFullYear();
+            var month = min.getMonth() + 1;
+            if (month < 10) {
+                month = "0" + month;
+            }
+            min = year + '-' + month;
+            document.getElementById("cardexp").min = min;
+        }
+    </script>
+    {%endblock%}
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+admin used in demo:
+	email: admin@hhotels.co.uk
+	password: WDaDadminpass
+
+standard used in demo:
+	email: user@gmail.com
+	password: WDaDuserpass
+
+the .sql file has the database dump and the required data speciefied in the coursework scpecification
+
+you will need to edit the dbfunc.py file with the database info you have
+
+inside dbfunc.py there's commented code that can be used to fully book hotels
+
+you will need the following libraries: 
+	flask
+	passlib
+	mysql-connector-python

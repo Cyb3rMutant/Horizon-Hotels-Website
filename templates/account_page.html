@@ -1,0 +1,375 @@
+<!-- purpose: webpage for user accounts
+module: Web Development and Databases
+author: Yazeed Abu-Hummos
+UWE ID: 21014295
+last edit time and date: 05:51 30/04/2022 -->
+
+
+
+{% extends "base.html" %}
+{{ super()}}
+{%block content%}
+<style>
+    .collapsible {
+        border: 1px solid black;
+        background-color: rgb(255, 196, 124);
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        text-align: left;
+        outline: none;
+    }
+
+    .collapsible:after {
+        content: '\002B';
+        color: white;
+        font-weight: bold;
+        float: right;
+        margin-left: 5px;
+    }
+
+    .active:after {
+        content: "\2212";
+    }
+
+    .content {
+        padding: 0 18px;
+        max-height: 0;
+        transition: max-height 0.2s ease-out;
+        overflow-y: scroll;
+    }
+</style>
+
+<body {% if not admin %} onload="initialdate();" {% else %}
+    onload="changehoteldetails({{hotels}}[document.getElementById('hotel').value]);" {% endif %}>
+
+    {% if admin %}
+    <button class="collapsible">Statistics</button>
+    <div class="content">
+        <table border="1px" style="width: 900px; overflow-x: scroll;">
+            <tr>
+                <th>Hotel Name</th>
+                <th>Number of reservations</th>
+                <th>Revenue</th>
+                <th>Number of canceled reservations</th>
+            </tr>
+            {% for stat in stats %}
+            <tr>
+                <td>{{stat[0]}}</td>
+                <td>{{stat[1]}}</td>
+                <td>{{stat[2]*currencies[currentCurrency]}} {{currentCurrency}}</td>
+                <td>{{stat[3]}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <button class="collapsible">Update hotel info</button>
+    <div class="content">
+        <form action="/account" method="POST">
+            <input type="hidden" name="formType" value="updateHotel" readonly>
+            <label for="hotel">Select a hotel: </label>
+            <select name="hotel" id="hotel" onchange="changehoteldetails({{hotels}}[this.value]);">
+                {% for hotel in hotels %}
+                <option value="{{hotel}}">{{hotel}}</option>
+                {% endfor %}
+            </select><br>
+
+            <label for="HotelLocation">Hotel name: </label>
+            <input type="text" id="HotelLocation" name="HotelLocation" pattern=".{2,}" maxlength="64" required><br>
+
+            <label for="PricePeak">Price Peak: </label>
+            <input type="number" id="PricePeak" name="PricePeak" min="1" max="9999" required><br>
+
+            <label for="PriceOffPeak">Price off peak: </label>
+            <input type="number" id="PriceOffPeak" name="PriceOffPeak" min="1" max="9999" required><br>
+
+            <label for="Description">Description: </label>
+            <textarea name="Description" id="Description" maxlength="500" cols="50" rows="7"></textarea><br>
+
+            <input type="submit" value="Apply changes">
+        </form>
+    </div>
+    <button class="collapsible">Add a currency</button>
+    <div class="content">
+        <div id="cancelForm">
+            <form action="/account" method="POST">
+                <input type="hidden" name="formType" value="addcur" readonly>
+                <label for="curid">Currency ID: </label>
+                <input type="text" name="curid" id="curid" maxlength="3" required><br><br>
+                <label for="curval">Currency exchange rate per 100 GBP: </label>
+                <input type="number" name="curval" id="curval" min="1" required><br>
+                <input type="submit" value="Add currency">
+            </form>
+
+        </div>
+    </div>
+    <button class="collapsible">Remove a hotel</button>
+    <div class="content">
+        <div id="cancelForm">
+            <form action="/account" method="POST" id="delhotel">
+                <input type="hidden" name="formType" value="delhotel" readonly>
+
+                <label for="hotelid">Hotel name: </label>
+                <select name="hotelid" id="hotelid" required>
+                    {% for hotel in hoteltodel %}
+                    <option value="{{hotel[0]}}">
+                        {{hotel[0]}}
+                    </option>
+                    {% endfor %}
+                </select><br><br>
+
+                <label for="password">Admin password: </label>
+                <input type="password" name="password" pattern=".{8,}" autocomplete required><br>
+
+                <input type="submit" value="Remove hotel">
+            </form>
+        </div>
+    </div>
+    <button class="collapsible">Cancel <b>user</b> reservations</button>
+    <div class="content">
+        <div id="cancelForm">
+            <form action="/account" method="POST" id="cancelfor">
+                <input type="hidden" name="formType" value="cancelForm" readonly>
+
+                <label for="resid">Reservation id number: </label>
+                <input type="text" name="resid" id="resid"><br><br>
+
+                <label for="useremailforres">User's email</label>
+                <input type="email" name="email" id="useremailforres" required><br><br>
+
+                <label for="currentpassword">Admin password: </label>
+                <input type="password" name="currentpassword" pattern=".{8,}" autocomplete required><br>
+
+                <input type="submit">
+            </form>
+        </div>
+    </div>
+    <button class="collapsible">Change <b>user</b> password</button>
+    <div class="content">
+        <form action="/account" method="POST">
+            <input type="hidden" name="formType" value="adminchangePassword" readonly>
+
+            <label for="chnguseremail">User email: </label>
+            <input type="email" name="email" id="chnguseremail" value="{{userdata[0]}}" required><br><br>
+
+            <label for="chnguserpassword">New user password: </label>
+            <input type="password" name="password" id="chnguserpassword" pattern=".{8,}" autocomplete required><br><br>
+
+            <label for="chngusercurrentpassword">Admin password: </label>
+            <input type="password" name="currentpassword" id="chngusercurrentpassword" pattern=".{8,}" autocomplete
+                required><br>
+
+            <input type="submit" id="chnguserpw" value="Change password">
+        </form>
+    </div>
+    <button class="collapsible">Delete <b>user</b> account</button>
+    <div class="content">
+        <form action="/account" method="POST">
+            <input type="hidden" name="formType" value="admindeleteaccount" readonly>
+
+            <label for="deluseremail">User email: </label>
+            <input type="email" id="deluseremail" name="email" value="{{userdata[0]}}" required><br><br>
+
+            <label for="deluserpassword">Admin password: </label>
+            <input type="password" name="password" id="deluserpassword" pattern=".{8,}" autocomplete required><br>
+
+            <input type="submit" value="Delete account">
+        </form>
+    </div>
+    {% else %}
+    <button class="collapsible">Reservations</button>
+    <div class="content" id="resdelthing">
+        <table border="1px" style="width: 1280px; overflow-x: scroll;">
+            <tr>
+                <th>reservation id</th>
+                <th>Hotel location</th>
+                <th>Room type</th>
+                <th>Start Date</th>
+                <th>End date</th>
+                <th>Price paid</th>
+                <th>Number of people</th>
+                <th>Date of booking</th>
+                <th>cancel</th>
+                <th>refund rate</th>
+            </tr>
+            {% for res in resdata %}
+            <tr>
+                <td>{{res[0]}}</td>
+                <td>{{res[2]}}</td>
+                <td>{{res[3]}}</td>
+                <td>{{res[4]}}</td>
+                <td>{{res[5]}}</td>
+                <td>{{res[6]}} {{res[7]}}</td>
+                <td>{{res[8]}}</td>
+                <td>{{res[9]}}</td>
+                <td>
+                    {% if res[4]>today and not res[10] %}
+                    <button
+                        onclick="cancelForm({{res[0]}},{{res[11]}},{{res[6]*res[12]}},'{{res[7]}}');">cancel</button>
+                    {% endif %}
+                    {% if res[10] %}
+                    Canceled
+                    {% endif %}
+                </td>
+                <td>{% if res[4]>today and not res[10] %}
+                    {{res[12]*100}}%
+                    {% endif %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div id="cancelForm">
+            <form action="/account" method="POST" id="cancelfor">
+                <input type="hidden" name="formType" value="cancelForm" readonly required>
+                <label for="amount" id="refund"></label>
+                <input type="hidden" id="amount" name="amount" readonly><br><br>
+                <label for="resid">Canceling reservation with id number (please click cancel from table above): </label>
+                <input type="text" name="resid" id="resid" readonly><br><br>
+                <label for="cardname">Name on card: </label>
+                <input type="text" name="cardname" id="cardname" pattern=".{4,}" maxlength="64"
+                    oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                    required><br><br>
+
+                <label for="cardnum">Number on card: </label>
+                <input type="text" name="cardnum" id="cardnum" pattern=".{13,}" maxlength="19"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                    required><br><br>
+
+                <label for="cardexp">Expiry date: </label>
+                <input type="month" name="cardexp" id="cardexp" required><br><br>
+
+                <label for="cardcvv">CVV: </label>
+                <input type="text" name="cardcvv" id="cardcvv" pattern=".{3,}" maxlength="3"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                    required><br>
+                <input type="submit" id="cancelformbtn" value="Cancel reservation" disabled>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    <button class="collapsible">Update details</button>
+    <div class="content">
+        <form action="/account" method="POST">
+            <input type="hidden" name="formType" value="updateInfo" readonly>
+
+            <label for="email">Email address: </label>
+            <input type="email" id="email" name="email" value="{{userdata[0]}}" required><br><br>
+
+            <label for="fname">First name: </label>
+            <input type="text" id="fname" name="fname" pattern=".{2,}" maxlength="32" value="{{userdata[2]}}"
+                oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                required><br><br>
+
+            <label for="lname">Last name: </label>
+            <input type="text" id="lname" name="lname" pattern=".{2,}" maxlength="32" value="{{userdata[3]}}"
+                oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                required><br><br>
+
+            <label for="phone">Phone number: </label>
+            <input type="tel" id="phone" name="phone" pattern=".{7,}" maxlength="15" value="{{userdata[5]}}"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                required><br><br>
+            <label for="address">Address: </label>
+            <input type="text" id="address" name="address" pattern=".{10,}" maxlength="256" value="{{userdata[4]}}"
+                required> <br><br>
+
+            <label for="currentpassword">Current password: </label>
+            <input type="password" name="currentpassword" pattern=".{8,}" autocomplete required><br>
+            <input type="submit" value="Update details">
+        </form>
+    </div>
+    <button class="collapsible">Change password</button>
+    <div class="content">
+        <form action="/account" method="POST">
+            <input type="hidden" name="formType" value="changePassword" readonly>
+
+            <label for="currentpassword">Old password: </label>
+            <input type="password" name="currentpassword" id="currentpassword" pattern=".{8,}"
+                onkeyup="validatePassword()" autocomplete required><br><br>
+
+            <label for="password">New password: </label>
+            <input type="password" id="password" name="password" pattern=".{8,}" onkeyup="validatePassword()"
+                oninput="this.className = ''" autocomplete required><br><br>
+            <label for="confirm_password">Confirm new password: </label>
+            <input type="password" id="confirm_password" pattern=".{8,}" required onkeyup="validatePassword()"
+                oninput="this.className = ''" autocomplete required> <br>
+            <input type="submit" id="chngpw" value="Change password">
+        </form>
+    </div>
+    <button class="collapsible">Delete account</button>
+    <div class="content">
+        <form action="/account" method="POST">
+            <input type="hidden" name="formType" value="deleteaccount" readonly>
+
+            <label for="password"> Password: </label>
+            <input type="password" name="password" pattern=".{8,}" autocomplete required><br>
+            <input type="submit" value="Delete account">
+        </form>
+    </div>
+
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        }
+
+        function changehoteldetails(hotelinfo) {
+            document.getElementById("HotelLocation").value = hotelinfo[0];
+            document.getElementById("PricePeak").value = hotelinfo[1];
+            document.getElementById("PriceOffPeak").value = hotelinfo[2];
+            document.getElementById("Description").value = hotelinfo[3];
+        }
+
+        function validatePassword() {
+            var current_password = document.getElementById("currentpassword");
+            var password = document.getElementById("password");
+            var confirm_password = document.getElementById("confirm_password");
+            if (password.value == current_password.value) {
+                password.className += " invalid";
+                document.getElementById("chngpw").disabled = true;
+                document.getElementById("chnguserpw").disabled = true;
+            }
+            if (password.value != confirm_password.value) {
+                confirm_password.className += " invalid";
+                document.getElementById("chngpw").disabled = true;
+                document.getElementById("chnguserpw").disabled = true;
+            }
+            else {
+                document.getElementById("chngpw").disabled = false;
+                document.getElementById("chnguserpw").disabled = false;
+            }
+        }
+
+        function cancelForm(resid, days, amount, cur) {
+            document.getElementById("cancelformbtn").disabled = false;
+            document.getElementById("cancelForm").scrollIntoView();
+            document.getElementById("resid").value = resid;
+            document.getElementById("refund").innerHTML = `you are canceling ${days} days in advance, you will get a refund of ${amount} ${cur}`;
+            document.getElementById("refund").value = amount;
+        }
+
+        function initialdate() {
+            var min = new Date();
+            var year = min.getFullYear();
+            var month = min.getMonth() + 1;
+            if (month < 10) {
+                month = "0" + month;
+            }
+            min = year + '-' + month;
+            document.getElementById("cardexp").min = min;
+        }
+    </script>
+
+    {%endblock%}
+</body>
+
+</html>

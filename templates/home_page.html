@@ -1,0 +1,360 @@
+<!-- purpose: webpage for home
+module: Web Development and Databases
+author: Yazeed Abu-Hummos
+UWE ID: 21014295
+last edit time and date: 05:52 30/04/2022 -->
+
+
+{% extends "base.html" %}
+{{ super()}}
+{%block content%}
+<script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<style>
+    .flexbox {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .fakeborder {
+        width: 100%;
+        padding: 2.5%;
+    }
+
+    .actualbox {
+        border: 1px solid black;
+        box-shadow: 5px 5px 1px 1px lightblue;
+        transition: transform .2s;
+        border-radius: 5px 25px 75px;
+        padding: 5px;
+    }
+
+    .actualbox:hover {
+        transform: scale(1.04);
+    }
+
+    .room {
+        border: 1px solid black;
+        margin: 2%;
+        border-radius: 10px;
+        background-color: rgb(192, 239, 255);
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .room:hover {
+        background-color: rgb(116, 220, 255);
+    }
+
+    .room span {
+        display: none;
+    }
+
+    .room:hover span {
+        display: block;
+    }
+
+    .room:hover>div {
+        display: none;
+    }
+
+    .filterbox {
+        background-color: rgb(255, 196, 124);
+        border-radius: 10px;
+        margin: 1%;
+        border: 1px solid black;
+        padding: 5px;
+        text-align: center;
+        width: 100%;
+        float: none;
+    }
+
+    @media only screen and (min-width: 475px) {
+        .fakeborder {
+            width: 50%;
+            padding: 1%;
+        }
+    }
+
+    @media only screen and (min-width: 825px) {
+        .fakeborder {
+            width: 33.33%;
+            padding: 0.75%;
+        }
+
+        .filterbox {
+            width: 15%;
+            float: right;
+            text-align: left;
+        }
+    }
+
+    /* The Modal (background) */
+    .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        /* Stay in place */
+        z-index: 1;
+        /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Full width */
+        height: 100%;
+        /* Full height */
+        overflow: auto;
+        /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0);
+        /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4);
+        /* Black w/ opacity */
+    }
+
+    /* Modal Content/Box */
+    .modal-content {
+        background-color: rgb(255, 196, 124);
+        border-radius: 10px;
+        margin: 15% auto;
+        /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid black;
+        width: 400px;
+        /* Could be more or less, depending on screen size */
+    }
+
+    /* The Close Button */
+    .close {
+        color: rgba(0, 0, 0, 0.543);
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+
+<body onload="initialdate();">
+    <div class="filterbox">
+        <form action="/home" method="POST">
+            <input type="hidden" value="filter" name="formType" readonly>
+            <label for="from">From: </label><br>
+            <input type="date" id="from" name="from" onchange="setenddate(this)" required value="{{fromdate}}">
+            <br>
+            <br>
+            <label for="to">To: </label><br>
+            <input type="date" id="to" name="to" required value="{{todate}}">
+            <br>
+            <br>
+            <label for="people">Number of people:</label><br>
+            <input type="number" id="people" name="people" min="{{intervals[2]}}" max="{{intervals[3]}}"
+                value="{{intervals[2]}}">
+            <br>
+            <br>
+            <label for="min">Minimum price:</label><br>
+            <input type="number" id="min" name="min" min="{{intervals[0]*currencies[currentCurrency]-1}}"
+                max="{{intervals[1]*currencies[currentCurrency]}}" value="{{intervals[0]*currencies[currentCurrency]}}">
+            <br>
+            <br>
+            <label for="max">Maximum price:</label><br>
+            <input type="number" id="max" name="max" min="{{intervals[0]*currencies[currentCurrency]}}"
+                max="{{intervals[1]*currencies[currentCurrency]+1}}"
+                value="{{intervals[1]*currencies[currentCurrency]}}">
+            <br>
+            <br>
+            <label for="search">Search for a location:<br><small style="font-size: x-small;">Add % between letters to
+                    get more results</small></label><br>
+            <input type="text" id="search" name="search">
+            <br>
+            <br>
+            <input type="submit" value="apply filters">
+        </form>
+    </div>
+    <div class="flexbox">
+        {% for hotel in hotels %}
+        <div class="fakeborder">
+            <div class="actualbox">
+                <h4 style="text-align: center;">{{hotel[0]}}</h4>
+                <img src="/static/rooms pics/{{hotel[0]}}.jpg" alt="{{hotel[0]}} hotel pic" height="400" width="100%">
+                <p style="text-align: left;">{{hotel[1]}}</p>
+                {% for type in hotels[hotel] %}
+                <div class="room" onclick="bookingBox('{{hotel[0]}}', '{{type}}', {{hotels[hotel][type][1]}});">
+                    <div>{{type}} Room</div>
+                    <span>{{hotels[hotel][type][0]*currencies[currentCurrency]}} {{currentCurrency}}</span>
+                </div>
+                {% endfor %}
+                <br>
+            </div>
+        </div>
+        {% endfor %}
+        {% for hotel in fullybooked %}
+        <div class="fakeborder">
+            <div class="actualbox">
+                <h4 style="text-align: center;">{{hotel[0]}}</h4>
+                <img src="/static/rooms pics/{{hotel[0]}}.jpg" alt="{{hotel[0]}} hotel pic" height="400" width="100%">
+                <p style="text-align: left;">{{hotel[1]}}</p>
+                <h3>Fully Booked</h3>
+                <br>
+            </div>
+        </div>
+        {% endfor %}
+        {% if admin %}
+        <div class="fakeborder">
+            <div class="actualbox">
+                <form style="text-align: center;" action="/account" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" value="newHotel" name="formType" readonly>
+                    <label for="newHotelName">Name:</label>
+                    <input type="text" name="newHotelName" id="newHotelName" pattern=".{3,}" maxlength="64"
+                        oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').replace(/(\..*?)\..*/g, '$1');"
+                        required><br><br>
+
+                    <label for="newHotelPic">Picture:</label>
+                    <input type="file" accept=".jpg" id="newHotelPic" name="newHotelPic" onchange="readURL(this);"
+                        required> <br>
+                    <img id="blah" src="#" height="400px" width="100%" /><br><br>
+
+                    <label for="description">Description:</label><br>
+                    <textarea name="description" id="description" style="width: 100%;" rows="4"></textarea><br><br>
+                    <label for="newHotelRooms">number of rooms:</label>
+                    <input type="number" name="newHotelRooms" id="newHotelRooms" min="1" max="9999" required><br><br>
+
+                    <label for="newHotelPeak">Price at peak in GBP:</label>
+                    <input type="number" name="newHotelPeak" id="newHotelPeak" min="1" max="9999" required><br><br>
+
+                    <label for="newHotelOffPeak">Price at off peak in GBP:</label>
+                    <input type="number" name="newHotelOffPeak" id="newHotelOffPeak" min="1" max="9999"
+                        required><br><br>
+                    <input type="submit" value="Add hotel">
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById('myModal').style.display='none'">&times;</span>
+                <form action="/booking" method="POST" style="text-align: center;">
+                    <input type="hidden" id="today" name="today">
+                    <label for="hotel">Hotel: </label>
+                    <input type="text" name="hotel" id="hotel" readonly><br><br>
+
+                    <label for="type">Type: </label>
+                    <input type="text" name="type" id="type" readonly><br><br>
+
+                    <label for="from2">From: </label>
+                    <input type="date" id="from2" name="from" onchange="setenddate(this)" required readonly
+                        value="{{fromdate}}"><br><br>
+
+                    <label for="to2">To: </label>
+                    <input type="date" id="to2" name="to" required readonly value="{{todate}}"><br><br>
+
+                    <label for="people2">Number of people:</label>
+                    <input type="number" id="people2" name="people" min="1" value="1"><br><br>
+                    {% if loggedin and not admin %}
+                    <input type="submit" value="Book now">
+                    {% elif admin %}
+                    <p>you can't book while logged in as admin</p>
+                    {% else %}
+                    <p>you need to be logged in to book, <a href="{{url_for('register',)}}">click here</a></p>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#blah')
+                        .attr('src', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function bookingBox(hotel, type, people) {
+            document.getElementById('myModal').style.display = 'block';
+            document.getElementById('hotel').value = hotel;
+            document.getElementById('type').value = type;
+            document.getElementById('people2').max = people;
+        }
+
+        function setenddate(date) {
+            var start = new Date(date.value);
+            start.setDate(start.getDate() + 1);
+            var year = start.getFullYear();
+            var month = start.getMonth() + 1;
+            var day = start.getDate();
+            if (month < 10) {
+                month = "0" + month;
+            }
+            if (day < 10) {
+                day = "0" + day;
+            }
+            start = year + '-' + month + '-' + day;
+            document.getElementById("to").value = start;
+            document.getElementById("to").min = start;
+            document.getElementById("to2").value = start;
+            document.getElementById("to2").min = start;
+        }
+
+        function initialdate() {
+            var date = new Date();
+            var min = new Date();
+            var minend = new Date();
+            var max = new Date();
+            var today = new Date();
+            min.setDate(date.getDate() + 1);
+            minend.setDate(date.getDate() + 2);
+            max.setDate(date.getDate() + 90);
+            var todayYear = today.getFullYear();
+            var todayMonth = today.getMonth() + 1;
+            var todayDay = today.getDate();
+            var year = min.getFullYear();
+            var month = min.getMonth() + 1;
+            var day = min.getDate();
+            var endday = minend.getDate();
+            var maxyear = max.getFullYear();
+            var maxmonth = max.getMonth() + 1;
+            var maxday = max.getDate();
+            if (todayMonth < 10) {
+                todayMonth = "0" + todayMonth;
+            }
+            if (todayDay < 10) {
+                todayDay = "0" + todayDay;
+            }
+            if (month < 10) {
+                month = "0" + month;
+            }
+            if (day < 10) {
+                day = "0" + day;
+            }
+            if (endday < 10) {
+                endday = "0" + endday;
+            }
+            if (maxmonth < 10) {
+                maxmonth = "0" + maxmonth;
+            }
+            if (maxday < 10) {
+                maxday = "0" + maxday;
+            }
+            min = year + '-' + month + '-' + day;
+            minend = year + '-' + month + '-' + endday;
+            max = maxyear + '-' + maxmonth + '-' + maxday;
+            today = todayYear + '-' + todayMonth + '-' + todayDay;
+            document.getElementById("from").min = min;
+            document.getElementById("from2").min = min;
+            document.getElementById("to").min = minend;
+            document.getElementById("to2").min = minend;
+            document.getElementById("from").max = max;
+            document.getElementById("from2").max = max;
+            document.getElementById("today").value = today;
+        }
+
+    </script>
+    {% endblock %}
+</body>

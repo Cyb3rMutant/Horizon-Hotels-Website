@@ -1,0 +1,118 @@
+<!-- purpose: webpage for policies
+module: Web Development and Databases
+author: Yazeed Abu-Hummos
+UWE ID: 21014295
+last edit time and date: 05:52 30/04/2022 -->
+
+
+{% extends "base.html" %}
+{{ super()}}
+{% block content %}
+
+<body>
+    <ul>
+        <li>
+            <h1>Booking in advance</h1>
+        </li>
+        <p>Booking a room in advance will provide discount on the total booking price as per the following table:</p>
+        <table border="1px">
+            <tr>
+                <th>
+                    Number Of days in advance
+                </th>
+                <th>
+                    Discount
+                </th>
+            </tr>
+            {% for price in discounts %}
+            <tr>
+                <td>
+                    Between {{price[2]}} and {{price[1]}} days
+                </td>
+                <td>{{price[0]}}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br><br><br>
+        <li>
+            <h1>Booking cancellation</h1>
+        </li>
+        <p>Booking cancellation refunds are as follows: </p>
+        <table border="1px">
+            <tr>
+                <th>
+                    Number Of days before booked date
+                </th>
+                <th>
+                    Refund
+                </th>
+            </tr>
+            {% for price in refunds %}
+            <tr>
+                <td>
+                    Between {{price[2]}} and {{price[1]}} days
+                </td>
+                <td>{{price[0]*100}}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br><br><br>
+        <li>
+            <h1>Room types and prices</h1>
+        </li>
+        <p>These are the room types available in all of our hotels:</p>
+        <table border="1px">
+            <tr>
+                <th>Room Type</th>
+                <th>More price of a Standard room</th>
+                <th>Max capacity</th>
+                <th>Extra price per guest</th>
+            </tr>
+            {% for room in rooms %}
+            <tr>
+                {% for feature in room %}
+                <td>
+                    {{feature}}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        <br><br><br>
+        <li>
+            <h1> Paying in forign currancies</h1>
+        </li>
+        <p>All hotels accept payment in the following currencies:</p>
+        <table border="1px">
+            <tr>
+                <th>
+                    currency
+                </th>
+                <th>
+                    Converssion rate from GBP
+                </th>
+            </tr>
+            {% for currency in currencies %}
+            <tr>
+                <td>
+                    {{currency}}
+                </td>
+                <td>{{currencies[currency]}}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <li>
+            <h1>User data</h1>
+        </li>
+        <ul>
+            <li>User details are stored in a database and passwords are hashed when signing up for the first time</li>
+            <li>We do not use cookies and only rely on sessions after logging in</li>
+            <li>When a user deletes their account all their data is deleted as well</li>
+            <li>No credit card info is stored</li>
+            <li>Booking data will be shared with the chosen hotel</li>
+        </ul>
+    </ul>
+    {%endblock%}
+</body>
+
+</html>

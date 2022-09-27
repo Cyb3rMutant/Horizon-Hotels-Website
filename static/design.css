@@ -1,0 +1,44 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: rgb(230, 228, 213);
+    font-size: 20px;
+    margin: 0;
+}
+header {
+    text-align: center;
+    background-color: rgb(255, 214, 164);
+}
+footer {
+    background-color: rgb(255, 214, 164);
+    width: 100%;
+}
+
+.navigation {
+    background-color: rgb(255, 214, 164);
+    display: flex;
+    margin: 0px auto;
+    width: fit-content;
+}
+.navigation > div {
+    padding: 3px;
+    font-size: 20px;
+}
+p {
+    font-size: 30;
+}
+h1 {
+    font-size: 69;
+}
+td {
+    text-align: center;
+}
+th {
+    text-align: center;
+    font-family: Cinzel-black;
+}
+input.invalid {
+    background-color: #ffdddd;
+}
