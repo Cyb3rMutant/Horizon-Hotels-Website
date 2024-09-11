@@ -10,10 +10,9 @@ import mysql.connector
 
 def getConnection():
     try:
-        conn = mysql.connector.connect(host="localhost",
-                                       user="root",
-                                       password="password",
-                                       database="DBname")
+        conn = mysql.connector.connect(
+            host="db", user="root", password="p", database="hotel"
+        )
     except mysql.connector.Error as err:
         return None
     else:  # will execute if there is no exception raised in try block
